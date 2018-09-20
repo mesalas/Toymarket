@@ -62,13 +62,24 @@ def GetData(path):
     with Pool(cpu_count()) as p:
         # Read simulation order book
         SimOrderBooks = p.map(OrderBooks.MarketDataOrderBook_Wrapper,
-                              [{"order_book_file_path": SPYFiles.File_Path + LogName,
+                              [{"order_book_file_path": path + LogName,
                                 "order_book_file_type": "Market data order book file",
                                 "order_book_depth": 10} for LogName in SPYFiles.SimOBList]
                               )
+        TradesLogs_file_list = ["SPY_OTC_TAQ_TRADES_20180206.csv.gz"]
+        TradesLogList_ColumnNames = ["TIMESTAMP", "PRICE", "SIZE", "EXCHANGE", "BUY_SELL_FLAG", "TRADE_TYPE", "COND", "TRF", "SOURCE", "SYMBOL_NAME"]
+
+
+        TradesLogs = p.map(OrderBooks.Read_CSV_Wrapper, [{"filepath_or_buffer": path + LogName,
+                                                          "index_col": False,
+                                                          "names": TradesLogList_ColumnNames,
+                                                          "header": 1,
+                                                          "compression": 'gzip'} for LogName in TradesLogs_file_list]
+                           )
 
     Prepare_SimOrderBook(SimOrderBooks)
-    return SimOrderBooks #, AgentLogs, RT_CashInventory, TradesLogs
+    prepare_trades_logs(TradesLogs)
+    return SimOrderBooks, TradesLogs
     if __name__ != "__main__":
         print("Not in __main__")
 
