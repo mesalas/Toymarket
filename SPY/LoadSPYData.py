@@ -41,8 +41,18 @@ def Prepare_SimOrderBook(SimOrderBooks):
             "America/New_York")  # Make a datetime column and specify that nanos are in utc and convert to localtime ie NY time
         SimOrderBook.OrderBook = SimOrderBook.OrderBook[
             SimOrderBook.OrderBook["DateTime"].dt.weekday < 5]  # Skip Weekends
-        SimOrderBook.OrderBook.index = SimOrderBook.OrderBook["DateTime"]
+        SimOrderBook.OrderBook.index = pd.DatetimeIndex(SimOrderBook.OrderBook["DateTime"]) # Make Order book indexed by date time
         SimOrderBook.OrderBook = SimOrderBook.OrderBook.between_time("9:30", "16:00")
+
+def prepare_trades_logs(trade_logs):
+    for i,trade_log in enumerate(trade_logs):
+        trade_log["DateTime"] = pd.to_datetime(trade_log["TIMESTAMP"],
+                                                            utc=True, unit="ms").dt.tz_convert(
+            "America/New_York")  # Make a datetime column and specify that nanos are in utc and convert to localtime ie NY time
+        trade_log.index = pd.DatetimeIndex(trade_log["DateTime"])
+        # Note we are doing inplace edits of the list
+        trade_logs[i] = trade_log[trade_log["DateTime"].dt.weekday < 5] # throw away weekends
+        trade_logs[i] = trade_log.between_time("9:30", "16:00")
 
 
 from multiprocessing import Pool, cpu_count
@@ -57,7 +67,7 @@ def GetData(path):
                                )
 
     # Generate lists of files for use in analysis
-    SPYFiles.SimOBList = ["SPY_OTC_BOOK10_20180206.csv.gz"]#SPYFiles.gen_file_list("Matching-OrderBook.csv")
+    SPYFiles.SimOBList = ["SPY_OTC_BOOK10_20180205.csv.gz"]#SPYFiles.gen_file_list("Matching-OrderBook.csv")
 
     with Pool(cpu_count()) as p:
         # Read simulation order book
@@ -66,7 +76,7 @@ def GetData(path):
                                 "order_book_file_type": "Market data order book file",
                                 "order_book_depth": 10} for LogName in SPYFiles.SimOBList]
                               )
-        TradesLogs_file_list = ["SPY_OTC_TAQ_TRADES_20180206.csv.gz"]
+        TradesLogs_file_list = ["SPY_OTC_TAQ_TRADES_20180205.csv.gz"]
         TradesLogList_ColumnNames = ["TIMESTAMP", "PRICE", "SIZE", "EXCHANGE", "BUY_SELL_FLAG", "TRADE_TYPE", "COND", "TRF", "SOURCE", "SYMBOL_NAME"]
 
 
