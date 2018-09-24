@@ -19,7 +19,7 @@ default_file_path= "../../../git/amm.engine/amm.engine/amm.testing/bin/Debug/net
 
 
 if __name__ == "__main__":  # Multithreaded functions
-    SimOrderBooks = LoadSPYData.GetData("E:\Datastore/")
+    SimOrderBooks, TradesLogs = LoadSPYData.GetData("E:\Datastore/")
     #AgentNames = LoadRandomTradersToymarketData.GenerateAgentNames(10,100, "RT")
 
 
